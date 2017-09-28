@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Firebase Auth Provider Linking</string>
+    <string name="facebook_app_id">1855495394763641</string>
+    <string name="fb_login_protocol_scheme">fb1855495394763641</string>
+    <string name="methodname"><![CDATA[List<? extends UserInfo> getProviderData()]]></string>
+
+</resources>
