@@ -88,11 +88,12 @@ public class LoggedIn extends AppCompatActivity {
 
         firebaseAuth = FirebaseAuth.getInstance();
 
-
         firebaseUser= firebaseAuth.getCurrentUser();
 
+        // initialize state of the UI
         setButtonsAndLogs(firebaseUser.getProviderData());
 
+        // reload user to dump user provider data.
         firebaseUser.reload().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -103,8 +104,6 @@ public class LoggedIn extends AppCompatActivity {
                 Log.d(TAG,stringBuilder.toString());
             }
         });
-
-
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
@@ -125,6 +124,7 @@ public class LoggedIn extends AppCompatActivity {
                 Log.d(TAG, "facebook:onSuccess");
 
                 AuthCredential emailAuthCredential = FacebookAuthProvider.getCredential(loginResult.getAccessToken().getToken());
+                // linking the facebook to the signin user.
                 firebaseUser.linkWithCredential(emailAuthCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -136,7 +136,6 @@ public class LoggedIn extends AppCompatActivity {
                         }
                     }
                 });
-
             }
 
             @Override
@@ -152,15 +151,11 @@ public class LoggedIn extends AppCompatActivity {
 
     }
 
-    private void setButton(Button button, String text, int listSize){
-        button.setText(text);
-        if(listSize==1){
-            button.setEnabled(false);
-        }
-    }
-
     @OnClick({R.id.buttonEmail, R.id.buttonFacebook, R.id.buttonGoogle,R.id.buttonLogout})
     public void onClick(View view) {
+
+        // linking and un-linking of providers based on the value of button (bad practice but needed for quick build)
+
         switch (view.getId()) {
             case R.id.buttonEmail:
                 if (buttonEmail.getText().toString().equals("Unlink Email")) {
@@ -217,7 +212,7 @@ public class LoggedIn extends AppCompatActivity {
 
                 break;
             case R.id.buttonGoogle:
-                // unlink 
+                // unlink
                 if (buttonGoogle.getText().toString().equals("Unlink Google")) {
                     firebaseUser.unlink(GoogleAuthProvider.PROVIDER_ID).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                         @Override
@@ -311,6 +306,9 @@ public class LoggedIn extends AppCompatActivity {
     }
 
     private void setButtonsAndLogs(List<? extends UserInfo> providerData){
+
+        // putting data to the text views for debugging
+
         StringBuilder stringBuilder = new StringBuilder();
         for (UserInfo userInfo : providerData) {
             stringBuilder.append("PROVIDER: "+userInfo.getProviderId()+", Id"+userInfo.getUid() + ", email: " + userInfo.getEmail() + ", emailVerified: " + userInfo.isEmailVerified() + "\n\n");
@@ -320,6 +318,8 @@ public class LoggedIn extends AppCompatActivity {
                 firebaseUser.getEmail()+
                 ", currentUser.isVerified: "+
                 firebaseUser.isEmailVerified()+"\n");
+
+        // setting states of the buttons
 
         List<String> listProvider = firebaseUser.getProviders();
 
@@ -335,6 +335,13 @@ public class LoggedIn extends AppCompatActivity {
             setButton(buttonGoogle,"Unlink Google",listProvider.size());
         }
 
+    }
+
+    private void setButton(Button button, String text, int listSize){
+        button.setText(text);
+        if(listSize==1){
+            button.setEnabled(false);
+        }
     }
 
 }

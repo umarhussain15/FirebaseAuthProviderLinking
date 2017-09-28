@@ -79,13 +79,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        // check firebase user login
         firebaseAuth = FirebaseAuth.getInstance();
         if( firebaseAuth.getCurrentUser()!=  null){
             onFireBaseAuthSuccess(firebaseAuth.getCurrentUser());
         }
         setContentView(R.layout.activity_main);
+        // butter knife for binding views
         ButterKnife.bind(this);
+
+        // Google api client intialization
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .requestProfile()
@@ -97,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         mGoogleApiClient.connect();
 
-        // facebook setup
+        // facebook login setup
         mCallbackManager = CallbackManager.Factory.create();
         LoginManager.getInstance().registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
             @Override
@@ -120,12 +123,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // click listeners binding
     @OnClick({R.id.buttonEmail, R.id.buttonFacebook, R.id.buttonGoogle})
     public void onClick(View view) {
 
         switch (view.getId()) {
 
             case R.id.buttonEmail:
+                // check email, password valid or not before attempting login
                 if (editTextEmail.getText().toString().isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(editTextEmail.getText().toString()).matches()) {
                     Toast.makeText(MainActivity.this, "Invalid Email",
                             Toast.LENGTH_SHORT).show();
@@ -133,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Password length less than 6 characters",
                             Toast.LENGTH_SHORT).show();
                 } else {
+                    // check providers list to check if email password user exists for the given email
                     firebaseAuth.fetchProvidersForEmail(editTextEmail.getText().toString()).addOnCompleteListener(new OnCompleteListener<ProviderQueryResult>() {
                         @Override
                         public void onComplete(@NonNull Task<ProviderQueryResult> task) {
@@ -144,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void onComplete(@NonNull final Task<AuthResult> task) {
                                             if (task.isSuccessful()) {
+                                                // after creating user check if user has given name field to set the display name. (Optional)
                                                 if( !editTextName.getText().toString().isEmpty()){
                                                     UserProfileChangeRequest changeRequest= new UserProfileChangeRequest
                                                             .Builder()
@@ -152,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
                                                         @Override
                                                         public void onComplete(@NonNull Task<Void> taskNameChange) {
                                                                 if (task.isSuccessful()){
+                                                                    // after successful sign up
                                                                     onFireBaseAuthSuccess(task.getResult().getUser());
                                                                 }
                                                         }
@@ -164,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
                                     });
                                 }
                                 else {
+                                    // user does exists only need to sign in the user.
                                     AuthCredential authCredential= EmailAuthProvider.getCredential(editTextEmail.getText().toString(),
                                             editTextPassword.getText().toString());
                                     firebaseAuth.signInWithCredential(authCredential).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -187,9 +196,11 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case R.id.buttonFacebook:
+                // Initiate facebook login process with email and profile permission
                 LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile"));
                 break;
             case R.id.buttonGoogle:
+                 // start the Google signin intent to let the user select account used to login
                 Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
                 startActivityForResult(signInIntent, RC_SIGN_IN);
                 break;
@@ -204,9 +215,14 @@ public class MainActivity extends AppCompatActivity {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             handleSignInResult(result);
         } else
+            // pass the results to the facebook callback to let it check if the result is of facebook login
             mCallbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
+    /**
+     * called after the user has successfully returned from google signin now we need to authenticate the user with firebase
+     * @param result GoogleSignInResult containing the user account info and id token needed to sign in
+     */
     private void handleSignInResult(GoogleSignInResult result) {
         Log.d(TAG, "handleSignInResult:" + result.isSuccess() + ". " + result.getStatus().toString());
         if (result.isSuccess()) {
@@ -218,6 +234,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * SignIn the user to firebase after successful retrieval of Facebook access token
+     * @param token
+     */
     private void handleFacebookAccessToken(AccessToken token) {
         Log.d(TAG, token.getToken());
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
@@ -268,6 +288,10 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * after successful signin to firebase reload the user and start {@link LoggedIn } activity
+     * @param currentUser
+     */
     private void onFireBaseAuthSuccess(FirebaseUser currentUser) {
         currentUser.reload();
         startActivity(new Intent(MainActivity.this,LoggedIn.class));
