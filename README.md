@@ -5,6 +5,13 @@ Shows how the auth provider can be linked to a firebase user.
 
 demo for showing the issues related to linking mutiple auth providers and not able to retrevie all the attached email address.
 
+## How to run
+
+- create a  firebase project with facebook, google and email password authentication enabled.
+- create a facebook application to link with the app, and putting secret on firebase console.
+- put google-services.json file in `app/`
+- setup facebook login as per the given instructions
+
 ## Issues:
 - Email address of all the providers connected cannot be retrieved from `firebaseUser.gerProviderData()` list. Id for each provider available but not email.
 - After signup with facebook login, linking email password login, then if email provider is unlinked, facebook email is not available 
