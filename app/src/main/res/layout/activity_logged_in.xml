@@ -13,6 +13,7 @@
         android:layout_marginEnd="8dp"
         android:layout_marginTop="8dp"
         android:text="Logout"
+        android:textColor="@color/colorAccent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -30,20 +31,22 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="Link Facebook"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonEmail" />
+        app:layout_constraintBottom_toBottomOf="@+id/buttonEmail"
+        app:layout_constraintStart_toEndOf="@+id/buttonEmail"
+        app:layout_constraintTop_toTopOf="@+id/buttonEmail" />
 
     <Button
         android:id="@+id/buttonGoogle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="Link Google"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonFacebook" />
+        app:layout_constraintBottom_toBottomOf="@+id/buttonFacebook"
+        app:layout_constraintEnd_toEndOf="@+id/textViewUserDirect"
+        app:layout_constraintStart_toEndOf="@+id/buttonFacebook"
+        app:layout_constraintTop_toTopOf="@+id/buttonEmail" />
 
     <EditText
         android:id="@+id/editTextEmail"
@@ -90,40 +93,38 @@
     <TextView
         android:id="@+id/textViewUserDirect"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginBottom="32dp"
+        android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:layout_marginStart="32dp"
-        android:text="TextView"
-        app:layout_constraintBottom_toTopOf="@+id/textViewProviders"
+        android:layout_marginStart="8dp"
+        android:minLines="2"
+        android:text="Data from User Object"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/buttonFacebook"
-        app:layout_constraintTop_toBottomOf="@+id/editTextPassword" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
     <TextView
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="@string/methodname"
         android:textColor="@android:color/holo_red_dark"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonGoogle" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewUserDirect" />
 
     <TextView
         android:id="@+id/textView4"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="firebaseAut.getCurrentUser()"
         android:textColor="@color/com_facebook_button_send_background_color_pressed"
-        app:layout_constraintBottom_toTopOf="@+id/textViewUserDirect"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/editTextPassword"
-        app:layout_constraintTop_toBottomOf="@+id/buttonLogout" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonFacebook" />
 
 </android.support.constraint.ConstraintLayout>

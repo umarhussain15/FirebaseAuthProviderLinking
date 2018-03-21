@@ -31,6 +31,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthProvider;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserInfo;
@@ -78,7 +79,7 @@ public class LoggedIn extends AppCompatActivity {
 
     private CallbackManager mCallbackManager;
 
-    private String TAG ="LoggedIn Activity";
+    private String TAG = "LoggedIn Activity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,10 +89,10 @@ public class LoggedIn extends AppCompatActivity {
 
         firebaseAuth = FirebaseAuth.getInstance();
 
-        firebaseUser= firebaseAuth.getCurrentUser();
+        firebaseUser = firebaseAuth.getCurrentUser();
 
         // initialize state of the UI
-        setButtonsAndLogs(firebaseUser.getProviderData());
+        setButtonsAndLogs();
 
         // reload user to dump user provider data.
         firebaseUser.reload().addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -99,9 +100,13 @@ public class LoggedIn extends AppCompatActivity {
             public void onComplete(@NonNull Task<Void> task) {
                 StringBuilder stringBuilder = new StringBuilder();
                 for (UserInfo userInfo : firebaseUser.getProviderData()) {
-                    stringBuilder.append("PROVIDER: "+userInfo.getProviderId()+", Id"+userInfo.getUid() + ", email: " + userInfo.getEmail() + ", emailVerified: " + userInfo.isEmailVerified() + "\n\n");
+                    stringBuilder.append("PROVIDER: ").append(userInfo.getProviderId())
+                            .append(", Id: ").append( userInfo.getUid())
+                            .append(", email: ").append(userInfo.getEmail())
+                            .append(", emailVerified: ").append( userInfo.isEmailVerified())
+                            .append( "\n\n");
                 }
-                Log.d(TAG,stringBuilder.toString());
+                Log.d(TAG, stringBuilder.toString());
             }
         });
 
@@ -132,7 +137,7 @@ public class LoggedIn extends AppCompatActivity {
                             buttonFacebook.setText("Unlink Facebook");
                             // after account linking silently logout facebook since its not the primary method for current session login
                             LoginManager.getInstance().logOut();
-                            setButtonsAndLogs(task.getResult().getUser().getProviderData());
+                            setButtonsAndLogs();
                         }
                     }
                 });
@@ -151,7 +156,7 @@ public class LoggedIn extends AppCompatActivity {
 
     }
 
-    @OnClick({R.id.buttonEmail, R.id.buttonFacebook, R.id.buttonGoogle,R.id.buttonLogout})
+    @OnClick({R.id.buttonEmail, R.id.buttonFacebook, R.id.buttonGoogle, R.id.buttonLogout})
     public void onClick(View view) {
 
         // linking and un-linking of providers based on the value of button (bad practice but needed for quick build)
@@ -159,16 +164,7 @@ public class LoggedIn extends AppCompatActivity {
         switch (view.getId()) {
             case R.id.buttonEmail:
                 if (buttonEmail.getText().toString().equals("Unlink Email")) {
-                    firebaseUser.unlink(EmailAuthProvider.PROVIDER_ID).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                buttonEmail.setText("Link Email");
-                                setButtonsAndLogs(task.getResult().getUser().getProviderData());
-                            }
-
-                        }
-                    });
+                    unLinkProvider(EmailAuthProvider.PROVIDER_ID, buttonEmail, "Link Email");
                 } else {
 
                     if (editTextEmail.getText().toString().isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(editTextEmail.getText().toString()).matches()) {
@@ -185,7 +181,7 @@ public class LoggedIn extends AppCompatActivity {
                             public void onComplete(@NonNull Task<AuthResult> task) {
                                 if (task.isSuccessful()) {
                                     buttonEmail.setText("Unlink Email");
-                                    setButtonsAndLogs(task.getResult().getUser().getProviderData());
+                                    setButtonsAndLogs();
                                 }
                             }
                         });
@@ -196,16 +192,7 @@ public class LoggedIn extends AppCompatActivity {
                 break;
             case R.id.buttonFacebook:
                 if (buttonFacebook.getText().toString().equals("Unlink Facebook")) {
-                    firebaseUser.unlink(FacebookAuthProvider.PROVIDER_ID).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                buttonFacebook.setText("Link Facebook");
-                                setButtonsAndLogs(task.getResult().getUser().getProviderData());
-                            }
-
-                        }
-                    });
+                    unLinkProvider(FacebookAuthProvider.PROVIDER_ID, buttonFacebook, "Link Facebook");
                 } else {
                     LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile"));
                 }
@@ -214,16 +201,7 @@ public class LoggedIn extends AppCompatActivity {
             case R.id.buttonGoogle:
                 // unlink
                 if (buttonGoogle.getText().toString().equals("Unlink Google")) {
-                    firebaseUser.unlink(GoogleAuthProvider.PROVIDER_ID).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                buttonGoogle.setText("Link Google");
-                                setButtonsAndLogs(task.getResult().getUser().getProviderData());
-                            }
-
-                        }
-                    });
+                    unLinkProvider(GoogleAuthProvider.PROVIDER_ID, buttonGoogle, "Link Google");
                 } else {
                     signInGoogle();
                 }
@@ -235,7 +213,7 @@ public class LoggedIn extends AppCompatActivity {
                 Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(new ResultCallbacks<Status>() {
                     @Override
                     public void onSuccess(@NonNull Status status) {
-                        startActivity(new Intent(LoggedIn.this,MainActivity.class));
+                        startActivity(new Intent(LoggedIn.this, MainActivity.class));
                         finish();
                     }
 
@@ -290,13 +268,13 @@ public class LoggedIn extends AppCompatActivity {
                                 @Override
                                 public void onSuccess(@NonNull Status status) {
                                     buttonGoogle.setText("Unlink Google");
-                                    setButtonsAndLogs(task.getResult().getUser().getProviderData());
+                                    setButtonsAndLogs();
                                 }
 
                                 @Override
                                 public void onFailure(@NonNull Status status) {
                                     buttonGoogle.setText("Unlink Google");
-                                    setButtonsAndLogs(task.getResult().getUser().getProviderData());
+                                    setButtonsAndLogs();
                                 }
                             });
                         }
@@ -305,41 +283,86 @@ public class LoggedIn extends AppCompatActivity {
                 });
     }
 
-    private void setButtonsAndLogs(List<? extends UserInfo> providerData){
+    private void unLinkProvider(String id, final Button button, final String buttonText) {
+        List<? extends UserInfo> providers = firebaseUser.getProviderData();
+        if (providers.size() > 2) {
+            firebaseUser.unlink(id).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                @Override
+                public void onComplete(@NonNull Task<AuthResult> task) {
+                    if (task.isSuccessful()) {
+                        firebaseUser.reload().addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                String email = firebaseUser.getProviderData().get(0).getEmail();
+                                for (UserInfo userInfo : firebaseUser.getProviderData()) {
+                                    if (!userInfo.getProviderId().equals(FirebaseAuthProvider.PROVIDER_ID)) {
 
-        // putting data to the text views for debugging
-
-        StringBuilder stringBuilder = new StringBuilder();
-        for (UserInfo userInfo : providerData) {
-            stringBuilder.append("PROVIDER: "+userInfo.getProviderId()+", Id"+userInfo.getUid() + ", email: " + userInfo.getEmail() + ", emailVerified: " + userInfo.isEmailVerified() + "\n\n");
+                                        if (userInfo.getEmail() != null) {
+                                            email = userInfo.getEmail();
+                                            break;
+                                        }
+                                    }
+                                }
+                                firebaseUser.updateEmail(email).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        button.setText(buttonText);
+                                        setButtonsAndLogs();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        } else {
+            Toast.makeText(LoggedIn.this, "Error: Cannot Remove provider.\n(Only one provider available)",
+                    Toast.LENGTH_LONG).show();
         }
-        textViewProviders.setText(stringBuilder);
-        textViewResult.setText("PROVIDER: "+firebaseUser.getProviderId()+"currentUser.getUid: "+firebaseUser.getUid()+", currentUser.getEmail: "+
-                firebaseUser.getEmail()+
-                ", currentUser.isVerified: "+
-                firebaseUser.isEmailVerified()+"\n");
+    }
 
-        // setting states of the buttons
+    private void setButtonsAndLogs() {
 
-        List<String> listProvider = firebaseUser.getProviders();
+        firebaseUser.reload().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                StringBuilder stringBuilder = new StringBuilder();
+                List<? extends UserInfo> providerData = firebaseUser.getProviderData();
+                for (UserInfo userInfo : providerData) {
+                    stringBuilder.append("PROVIDER: ").append(userInfo.getProviderId())
+                            .append(", Id: ").append( userInfo.getUid())
+                            .append(", email: ").append(userInfo.getEmail())
+                            .append(", emailVerified: ").append( userInfo.isEmailVerified())
+                            .append( "\n\n");
+                    if (userInfo.getProviderId().equals(EmailAuthProvider.PROVIDER_ID)) {
 
-        if (listProvider.contains(EmailAuthProvider.PROVIDER_ID)) {
+                        setButtonAfterLinked(buttonEmail, "Unlink Email", providerData.size());
+                    }
+                    if (userInfo.getProviderId().equals(FacebookAuthProvider.PROVIDER_ID)) {
 
-            setButton(buttonEmail,"Unlink Email",listProvider.size());
-        }
-        if (listProvider.contains(FacebookAuthProvider.PROVIDER_ID)) {
+                        setButtonAfterLinked(buttonFacebook, "Unlink Facebook", providerData.size());
+                    }
+                    if (userInfo.getProviderId().equals(GoogleAuthProvider.PROVIDER_ID)) {
+                        setButtonAfterLinked(buttonGoogle, "Unlink Google", providerData.size());
+                    }
+                }
+                textViewProviders.setText(stringBuilder);
 
-            setButton(buttonFacebook,"Unlink Facebook",listProvider.size());
-        }
-        if (listProvider.contains(GoogleAuthProvider.PROVIDER_ID)) {
-            setButton(buttonGoogle,"Unlink Google",listProvider.size());
-        }
+                StringBuilder firebaseUserStringBuilder= new StringBuilder();
+                firebaseUserStringBuilder.append("Provider: ").append(firebaseUser.getProviderId()).append(", ")
+                        .append("currentUser.getUid: ").append(firebaseUser.getUid()).append(", ")
+                        .append("currentUser.getEmail: ").append(firebaseUser.getEmail()).append(", ")
+                        .append("currentUser.isVerified: ").append(firebaseUser.isEmailVerified()).append("\n");
+                textViewResult.setText(firebaseUserStringBuilder);
+            }
+        });
+
 
     }
 
-    private void setButton(Button button, String text, int listSize){
+    private void setButtonAfterLinked(Button button, String text, int listSize) {
         button.setText(text);
-        if(listSize==1){
+        if (listSize == 1) {
             button.setEnabled(false);
         }
     }
